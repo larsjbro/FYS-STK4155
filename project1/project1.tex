@@ -1,0 +1,59 @@
+\documentclass[10pt,a4paper]{article}
+%\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{caption}
+\captionsetup[figure]{font=normal}
+
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+%\includeonly{oppgave2}
+\makeindex
+
+\addtolength{\oddsidemargin}{-.875in}
+\addtolength{\evensidemargin}{-.875in}
+\addtolength{\textwidth}{1.75in}
+
+\addtolength{\topmargin}{-.875in}
+%\addtolength{\textheight}{1.75in}
+
+%\lstset{inputpath=#1]
+%\lstset{inputpath=source}
+\graphicspath{{./source/}}
+\input{header.tex}
+
+\begin{document}
+\title{Project 1 FYS-STK3155}
+\author{Lars Johan Brodtkorb}
+\maketitle
+
+
+\tableofcontents
+\newpage
+
+\include{1}
+
+
+
+
+\subsection{Program code project 1}
+\label{sec:programcode_3}
+%\subsubsection{Task 1a}
+\lstinputlisting[language=Python]{ridge_ols.py}
+%\subsubsection{Task 1b}
+\lstinputlisting[language=Python]{bootstrap.py}
+%\subsubsection{Task 2b}
+\lstinputlisting[language=Python]{regression_task.py}
+%\subsubsection{Task 3b}
+%\lstinputlisting[language=Python]{"oblig1_3b.py"}
+
+
+\end{document}
