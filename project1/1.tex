@@ -214,11 +214,12 @@ We can also write the Lasso problem in the equivalent Lagrangian form:
 The difference from the ridge method is that the ridge penalty $\sum_{j=1}^{p}\beta_j^2$ is replaced with the Lasso penalty $\sum_{j=1}^{p}\abs{\beta_j}$
 
 \section{Code implementation}
-For most of the code implementation see attachments for all the code, but I will include the bootstrap method with comments in the report.
+For most of the code implementation see github repository: \href{https://github.com/larsjbro/FYS-STK3155/tree/master/project1}{https://github.com/larsjbro/FYS-STK3155/tree/master/project1}. I will include the bootstrap method with comments in the report.
 
 \subsection{Bootstrap}
 
-The bootstrap method was implemented with the following code, noting steps in the comments to the program.
+The bootstrap method was implemented with the following code, which was used to generate the prediction error, bias and variance shown in the figures.\newline
+
 
 \lstinputlisting[language=Python]{bootstrap.py}
 
@@ -230,7 +231,51 @@ The bootstrap method was implemented with the following code, noting steps in th
 
 \subsection{Results}
 
+
 \subsubsection{OLS}
+
+Table \ref{Table:1} shows the fitted coefficients for the best ordinary least squares method fitted to the Frankfunkction along with its standard deviation, z-score and 95 percent confidence interval. As we can se from the table, only a few of the coefficients are significantly different from 0. In total table \ref{Table:1} shows there are only 5 such coefficients. The other coefficients could have possibly been set to zero.
+
+\FloatBarrier
+\begin{table}
+	
+	\begin{tabular}{lrrrrr}
+		\toprule
+		{} &         coef &          std &   z\_score &        Confidence interval 0.025 &        Confidence interval 0.975 \\
+		\midrule
+		0  &    -1.648196 &     0.532137 & -3.097317 &    -2.691165 &    -0.605227 \\
+		1  &    -1.919886 &     1.848958 & -1.038361 &    -5.543776 &     1.704005 \\
+		2  &     6.699335 &     3.720084 &  1.800856 &    -0.591897 &    13.990566 \\
+		3  &     1.577407 &    10.841403 &  0.145498 &   -19.671353 &    22.826166 \\
+		4  &     0.248456 &     0.463744 &  0.535762 &    -0.660466 &     1.157378 \\
+		5  &     3.048496 &     2.491046 &  1.223781 &    -1.833865 &     7.930857 \\
+		6  &   -20.088662 &    12.870111 & -1.560877 &   -45.313616 &     5.136292 \\
+		7  &   -17.914271 &    16.822026 & -1.064929 &   -50.884836 &    15.056294 \\
+		8  &    81.253441 &    62.107653 &  1.308268 &   -40.475323 &   202.982204 \\
+		9  &     0.006444 &     1.659116 &  0.003884 &    -3.245363 &     3.258252 \\
+		10 &   -10.048598 &    13.844107 & -0.725839 &   -37.182548 &    17.085353 \\
+		11 &   122.772857 &    58.256501 &  2.107453 &     8.592213 &   236.953501 \\
+		12 &    18.202467 &    89.033985 &  0.204444 &  -156.300937 &   192.705871 \\
+		13 &  -464.346238 &   295.293981 & -1.572488 & -1043.111806 &   114.419331 \\
+		14 &    -5.577415 &     2.836466 & -1.966325 &   -11.136786 &    -0.018044 \\
+		15 &   -17.666890 &    15.364312 & -1.149865 &   -47.780388 &    12.446608 \\
+		16 &   188.349237 &    79.758452 &  2.361496 &    32.025544 &   344.672930 \\
+		17 &   127.373969 &   100.448526 &  1.268052 &   -69.501525 &   324.249463 \\
+		18 &  -781.831660 &   379.979896 & -2.057561 & -1526.578570 &   -37.084750 \\
+		19 &     0.140168 &     8.835873 &  0.015864 &   -17.177825 &    17.458162 \\
+		20 &    72.613196 &    63.561066 &  1.142416 &   -51.964203 &   197.190596 \\
+		21 &  -603.170312 &   289.455482 & -2.083810 & -1170.492631 &   -35.847993 \\
+		22 &  -176.329738 &   401.060283 & -0.439659 &  -962.393449 &   609.733972 \\
+		23 &  2420.894666 &  1422.585633 &  1.701757 &  -367.321940 &  5209.111272 \\
+		\bottomrule
+		
+	\end{tabular}
+	\caption{Values for the best fit ordinary least squares method for the data from the Frankefunction with m=300 and sigma=0.5}
+	\label{Table:1}
+\end{table}
+\FloatBarrier
+
+
 Below are figures from the ordinary least squares method:
 \FloatBarrier
 \begin{figure}[!ht]
@@ -323,7 +368,7 @@ Below are the figures for varying sample sizes, polynomials and penalty with Las
 \begin{figure}[!ht]
 	\centering
 	\FloatBarrier
-	\includegraphics[width=1\textwidth]{plot_lasso_without_r2/lassoprediction_error_m300_d5_s0.png}
+	\includegraphics[width=1\textwidth]{lasso_prediction_vs_lambda/lassoprediction_error_m300_d5_s0.png}
 	
 	\caption{This shows the bias-variance tradeoff as function of the regularization parameter, lambda, for Lasso regression method with a sample size of 300 and a polynomial degree of 5}
 	\label{fig:3}
@@ -336,7 +381,7 @@ Below are the figures for varying sample sizes, polynomials and penalty with Las
 \begin{figure}[!ht]
 	\centering
 	\FloatBarrier
-	\includegraphics[width=1\textwidth]{plot_lasso_without_r2/lassoprediction_error_m300_d5_s10.png}
+	\includegraphics[width=1\textwidth]{lasso_prediction_vs_lambda/lassoprediction_error_m300_d5_s10.png}
 	
 	\caption{This shows the bias-variance tradeoff as function of the regularization parameter, lambda, for Lasso regression method with a sample size of 300, polynomial degree of 5 and standard deviation of 0.1.}
 	\label{fig:3}
@@ -349,7 +394,7 @@ Below are the figures for varying sample sizes, polynomials and penalty with Las
 \begin{figure}[!ht]
 	\centering
 	\FloatBarrier
-	\includegraphics[width=1\textwidth]{plot_lasso_without_r2/lassoprediction_error_m300_d5_s50.png}
+	\includegraphics[width=1\textwidth]{lasso_prediction_vs_lambda/lassoprediction_error_m300_d5_s50.png}
 	
 	\caption{This shows the bias-variance tradeoff as function of the regularization parameter, lambda, for Lasso regression method with a sample size of 300, a polynomial degree of 5 and standard deviation of 0.5}
 	\label{fig:3}
@@ -362,19 +407,28 @@ Below are the figures for varying sample sizes, polynomials and penalty with Las
 From all the figures I will now consider prediction error, bias and variance for the various methods.
 
 \subsubsection{OLS}
-For the OLS I can see that the minimum prediction error is for a polynomial of degree 4 for all standard deviations 0, 0.1 and 0.5. IN all cases the value of the prediction error is about 0.004. The bias is smallest at 5 degrees in all cases. The variance is smallest for a degree 4 polynomial for standard deviations of 0 and 0.1. For standard deviation of 0.5 the smallest variance is at 3. For a degree 1 polynomial, we do have a low variance, but the bias is really high. 
+For the OLS I can see that the minimum prediction error is for a polynomial of degree 4 for all standard deviations 0, 0.1 and 0.5. IN all cases the value of the prediction error is about 0.004. The bias is smallest at 5 degrees in all cases. The variance is smallest for a degree 4 polynomial for standard deviations of 0 and 0.1. For standard deviation of 0.5 the smallest variance is at 3. For a degree 1 polynomial, we do have a low variance, but the bias is really high.
+\medskip
+
+Table \ref{Table:1} shows that there were only 5 significant coefficients, the other ones could possibly have been set to 0, but that was not implemented. In principle I could have found a best subset model here.
 
 \subsubsection{Ridge}
 For the ridge regression I can see a low prediction error for lambda being $10^{-4}$ and $10^{-10}$ for the 0 and 0.1 standard deviation cases, with a value of the prediction error of about 0.0035 and 0.002. The lowest value being for 0.1 standard deviation and lambda $10^{-4}$. For the 0.5 standard deviation case, the prediction error is the smallest at about 0.25 for lambda $10^{-4}$.
 
 \subsubsection{Lasso}
-For the lasso regression at standard deviation of 0 I can see a minimum prediction error of about 0.009 for lambda $10^{-5}$. For standard deviation 0.1 the prediction error is up to 0.019 and for standard deviation 0.5 all the way up to 0.25. This tells me that something might have gone wrong with the implementation of lasso. 
+For the lasso regression at standard deviation of 0 I can see a minimum prediction error of about 0.005 for lambda $10^{-7}$. For standard deviation 0.1 the prediction error is up to 0.015 and for standard deviation 0.5 it is all the way up to 0.25. This tells me that something might have gone wrong with the implementation of lasso. 
 
 \section{Conclusion}
 
 The results show that the Ridge regression gives a better prediction error than the other two methods. That does not agree with the expected, since the Lasso method should have been better. I tried to figure out the reason why that happened, and I came up with the following explanation:
 
-The formulation of Lasso is the same as for Ridge, but for the extra $\beta$ term in Ridge. It seems clear from the results that the Ridge method was to be preferred, but on further inspection, it seems that the Lasso method may have been worse because the standardization method was not done correctly for Lasso. I suspect this is the reason for Lasso being worse than the Ridge regression. Ideally I would think Lasso would be the best method because Lasso does regularization and feature selection, setting parameters to 0 if possible by itself (\cite{elementsstat} p.63).
+The formulation of Lasso is the same as for Ridge, but for the extra $\beta$ term in Ridge. It seems clear from the results that the Ridge method was to be preferred, but on further inspection, it seemed that the Lasso method may have been worse because the standardization method was not done correctly for Lasso. I suspect this was the reason for Lasso being worse than the Ridge regression.
+
+I then implemented this standardization, and still found that the Lasso regression was inferior to the ridge regression, which I can not fully explain.
+
+
+\section*{Improvements}
+I would have liked to complete the data analysis, and also figured out why Ridge regression showed superior results compared to the Lasso Regression. For the OLS method I could have found a best subset model after having found the significant coefficients.
 
 
 \section{Bibliography}

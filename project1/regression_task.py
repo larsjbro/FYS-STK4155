@@ -35,7 +35,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 
 
-fitstats = namedtuple('stats', ['mse', 'r2', 'beta_variance', 'zscore', 'beta_low', 'beta_up'])
+fitstats = namedtuple('stats', ['mse', 'r2', 'beta_variance', 'zscore', 'beta_low', 'beta_up', 'data'])
 fitstat2 = namedtuple('stats2', ['prediction_r2_score',
                                  'prediction_error',
                                  'average_bias_squared',
@@ -130,6 +130,21 @@ def bootstrap_bias_variance(x, y, model, n_bootstraps=200, test_size=0.2, plot=T
     return stats
 
 
+class Lasso2d(object):
+    def __init__(self, deg=(2, 2), lam=0, alpha=0.05, fulloutput=False):
+        self.deg = deg
+        self.lam = lam
+        self.alpha = alpha
+        self.coefficients = None
+        self.fulloutput=fulloutput
+        self.model = make_pipeline(PolynomialFeatures(self.deg[0]),
+                                   Lasso(alpha=self.lam, normalize=True, max_iter=8000))
+    def fit(self, X, y):
+        self.model.fit(X, y)
+
+    def predict(self, X):
+        return self.model.predict(X)
+
 
 class Ridge2d(object):
     """
@@ -189,23 +204,41 @@ class Ridge2d(object):
             beta_variance = np.diag(beta_covariance) # .reshape(orders)
 
             std_error = np.sqrt(beta_variance)
-            z_score = beta / std_error
+            beta_0 = beta.ravel()[1:]
+            z_score = beta_0 / std_error
             # 1-alpha confidence interval for beta. Eq 3.14 in Hastie
-            z_alpha = -ss.norm.ppf(self.alpha/2)  # inverse of the gaussian cdf function (ss.norm.cdf(-z_alpha)==alpha/2), cdf = cumulative density function
-            beta_low = beta - z_alpha * std_error
-            beta_up = beta + z_alpha * std_error
+            low_alpha2 = self.alpha/2
+            hi_alpha2 = 1-low_alpha2
+            z_alpha = -ss.norm.ppf(low_alpha2)  # inverse of the gaussian cdf function (ss.norm.cdf(-z_alpha)==alpha/2), cdf = cumulative density function
+            beta_low = beta_0 - z_alpha * std_error
+            beta_up = beta_0 + z_alpha * std_error
 
+            data = pd.DataFrame(np.vstack((beta_0,
+                                    np.sqrt(beta_variance.ravel()),
+                                    z_score.ravel(),
+                                    beta_low.ravel(),
+                                    beta_up.ravel())).T, columns=['coef', 'std', 'z_score', f'{low_alpha2:.3f}', f'{hi_alpha2:.3f}'])
             self.stats = fitstats(mse=mean_sqared_error,
                                   r2=r_squared(y, yhat),
                                   beta_variance=beta_variance,
                                   zscore=z_score,
                                   beta_low=beta_low,
-                                  beta_up=beta_up)
+                                  beta_up=beta_up,
+                                  data=data)
         return self
 
     def predict(self, X):
         X_  = X - self._mean_X
         return self._mean_y + polyval2d(X_[:,0], X_[:,1], self.coefficients).reshape(-1, 1)
+
+    def summary(self):
+        data = self.stats.data
+        print('Dep. Variable:                      y   R-squared:                       {:0.3f}'.format(self.stats.r2))
+        print('                                        MSE:                       {:0.3f}'.format(self.stats.mse))
+
+        # print(data)
+        print(data.to_string())
+        print(data.to_latex())
 
 
 class OLS2d(Ridge2d):
@@ -226,7 +259,9 @@ class OLS2d(Ridge2d):
 
 
 def fit_lasso2d(X_, z_, z0_, deg, lam):
-    fitter = make_pipeline(PolynomialFeatures(deg[0]), Lasso(alpha=lam, max_iter=4000))
+    fitter = make_pipeline(PolynomialFeatures(deg[0]), Lasso(alpha=lam,
+                                                             normalize=True,
+                                                             max_iter=8000))
     return _fit_2d(X_, z_, z0_, fitter)
 
 
@@ -234,7 +269,6 @@ def fit_ridge2d(X_, z_, z0_, deg, lam):
     # fitter = make_pipeline(PolynomialFeatures(deg[0]), Ridge(alpha=lam))
     fitter = Ridge2d(deg=deg, lam=lam, alpha=0.05, fulloutput=False)
     return _fit_2d(X_, z0_, z_, fitter)
-
 
 
 def _fit_2d(X_, z_, z0_, fitter):
@@ -559,6 +593,29 @@ def plot_surface(x, y, z):
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
 
+def tri_surface_plot(surface, title, surface1=None, title2=None):
+    if title2 is None:
+        title2 = title
+
+    x, y, z = surface.T
+    fig = plt.figure()
+
+    if surface1 is not None:
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+        ax.plot_trisurf(x, y, z, cmap=cm.viridis, linewidth=0, antialiased=True)
+        plt.title(title)
+
+        ax = fig.add_subplot(1, 2, 2, projection='3d')
+        x1, y1, z1 = surface1.T
+        ax.plot_trisurf(x1, y1, z1, cmap=cm.viridis, linewidth=0, antialiased=True)
+
+        plt.title(title2)
+    else:
+        ax = fig.gca(projection='3d')
+        ax.plot_trisurf(x, y, z, cmap=cm.viridis, linewidth=0, antialiased=True)
+        plt.title(title)
+
+
 def surface_plot(surface,title, surface1=None, title2=None):
     if title2 is None:
         title2 = title
@@ -632,7 +689,7 @@ def task(degrees=(1,2,3,4,5),
                 plot_prediction_error_vs_lambdas(X, z, z0, degree, lambdas=lambdas, sigma=sigma, method=method)
 
 
- # (m, sigma, degree)
+# (m, sigma, degree)
 RIDGE_OPTIMUM_LAMBDA = {(300,0,1): 1.00000000e-07,
                   (300,0,2): 1.00000000e-10,
                   (300,0,3): 1.00000000e-10,
@@ -671,16 +728,73 @@ RIDGE_OPTIMUM_LAMBDA = {(300,0,1): 1.00000000e-07,
                   }
 
 
-if __name__ == '__main__':
+LASSO_OPTIMUM_LAMBDA = {(300,0,1): 1.00000000e-07,
+                  (300,0,2): 1.00000000e-5,
+                  (300,0,3): 1.00000000e-7,
+                  (300,0,4): 1.00000000e-5,
+                  (300,0,5): 1.00000000e-7,
 
+                  (300,0.1,1): 1.00000000e-3,
+                  (300,0.1,2): 1.00000000e-7,
+                  (300,0.1,3): 1.00000000e-5,
+                  (300,0.1,4): 1.00000000e-7,
+                  (300,0.1,5): 1.00000000e-7,
+
+                  (300,0.5,1): 1.00000000e-5,
+                  (300,0.5,2): 1.00000000e-7,
+                  (300,0.5,3): 1.00000000e-3,
+                  (300,0.5,4): 1.00000000e-5,
+                  (300,0.5,5): 1.00000000e-7,
+
+                  (3000,0,1): 1.00000000e-5,
+                  (3000,0,2): 1.00000000e-7,
+                  (3000,0,3): 1.00000000e-7,
+                  (3000,0,4): 1.00000000e-7,
+                  (3000,0,5): 1.00000000e-7,
+
+                  (3000,0.1,1): 1.00000000e-7,
+                  (3000,0.1,2): 1.00000000e-7,
+                  (3000,0.1,3): 1.00000000e-7,
+                  (3000,0.1,4): 1.00000000e-7,
+                  (3000,0.1,5): 1.00000000e-7,
+
+                  (3000,0.5,1): 1.00000000e-3,
+                  (3000,0.5,2): 1.00000000e-7,
+                  (3000,0.5,3): 1.00000000e-7,
+                  (3000,0.5,4): 1.00000000e-5,
+                  (3000,0.5,5): 1.00000000e-5,
+                  }
+
+
+def fit_best_model(degree=4, lam=0, sample_size=300, sigma=0.5, method='ridge'):
+    if method== 'ridge':
+        model = Ridge2d(deg=(degree, degree), lam=lam, fulloutput=True)
+    else:
+        model = Lasso2d(deg=(degree, degree), lam=lam)
+
+
+    X, z, z0 = generate_dataset(sample_size, sigma)
+    model.fit(X, z)
+    model.summary()
+    zhat = model.predict(X)
+
+    tri_surface_plot(np.hstack((X, zhat)), 'Fitted terrain surface OLS',
+                     np.hstack((X, z)), 'True terrain surface')
+    plt.show('hold')
+
+
+if __name__ == '__main__':
+    np.random.seed(4155)
     # example_fit_2d(deg=(5, 5), m=5000, sigma=.0, lam=0)
-    task_a(degrees=(1, 2, 3, 4, 5),
-           lambdas=(RIDGE_OPTIMUM_LAMBDA, ),
-           sample_sizes=(300, 3000),
-           sigmas=(0, 0.1, 0.5),
-           method='ridge')
+    fit_best_model(degree=4, lam=0, sample_size=300, sigma=0.5, method='ridge')
+    # task_a()
+#     task_a(degrees=(1, 2, 3, 4, 5),
+#            lambdas=(LASSO_OPTIMUM_LAMBDA, ),
+#            sample_sizes=(300, 3000),
+#            sigmas=(0, 0.1, 0.5),
+#            method='lasso')
 
 #    task_b()
-    # task_c()
+#     task_c()
     # test_scikit1d()
     # example_fit_scikit2d(deg=(5,5), m=10000, sigma=0.0, lam=1e-5)
