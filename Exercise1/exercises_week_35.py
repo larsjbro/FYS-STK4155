@@ -78,9 +78,12 @@ def polynomial_sci_kit(n=100, sigma=0.1):
     plt.show()
 
 
-def lecture_note_solution_exercise_2_with_plot(degree=2):
-    x = np.random.rand(100)
-    y = 2.0 + 5 * x * x + 0.1 * np.random.randn(100)
+def lecture_note_solution_exercise_2_with_plot(degree=2, plot=True, data=None):
+    if data is None:
+        x = np.random.rand(100)
+        y = 2.0 + 5 * x * x + 0.1 * np.random.randn(100)
+    else:
+        x, y = data
 
     #  The design matrix now as function of a given polynomial
     X = np.zeros((len(x), degree+1))
@@ -112,11 +115,31 @@ def lecture_note_solution_exercise_2_with_plot(degree=2):
     y = y_test[index]
     y_fit = X_test[index,:] @ beta
 
-    plt.scatter(x, y, color='red', label='Data points')
-    plt.plot(x, y_fit, label='Fitted polynomial', color='blue')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title(f'MSE_train_test=({mse_train:.3f},{mse_test:.3f}),R2_train_test=({r2_train:.3f},{r2_test:.3f}),Degree={degree}')
+    if plot:
+        plt.scatter(x, y, color='red', label='Data points')
+        plt.plot(x, y_fit, label='Fitted polynomial', color='blue')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title(f'MSE_train_test=({mse_train:.3f},{mse_test:.3f}),R2_train_test=({r2_train:.3f},{r2_test:.3f}),Degree={degree}')
+        plt.legend()
+        plt.show()
+
+    return mse_train, mse_test
+
+
+def plot_hastie_et_al(max_degree=15, min_degree=1):
+    x = np.random.rand(100)
+    y = 2.0 + 5 * x * x + 0.1 * np.random.randn(100)
+    data = (x, y)
+    mse_train_list = []
+    mse_test_list = []
+    degrees = list(range(min_degree, max_degree+1))
+    for degree in degrees:
+        mse_train, mse_test = lecture_note_solution_exercise_2_with_plot(degree=degree, plot=False, data=data)
+        mse_train_list.append(mse_train)
+        mse_test_list.append(mse_test)
+    plt.plot(degrees, mse_train_list, label='MSE train')
+    plt.plot(degrees, mse_test_list, label='MSE test')
     plt.legend()
     plt.show()
 
@@ -131,4 +154,5 @@ if __name__ == '__main__':
     but the data are scattered quite far from the fitted line as shown with R2 = 0.690
     With Sigma 0.1 the fit and scatter are both close to the fitted line.
     '''
-    lecture_note_solution_exercise_2_with_plot(degree=5)
+    #lecture_note_solution_exercise_2_with_plot(degree=5)
+    plot_hastie_et_al()
